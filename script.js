@@ -1,0 +1,1 @@
+// Aquí se implementará la lógica de cálculo.
