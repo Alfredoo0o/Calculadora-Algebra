@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Gases Ideales</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+      color: white;
+    }
+    .contenedor {
+      max-width: 800px;
+      margin: 5vh auto;
+      padding: 30px;
+      background-color: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      margin-top: 15px;
+      display: block;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: none;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 20px;
+      background-color: #4ecdc4;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #38b7ac;
+    }
+    #resultado, #resultado-operacion {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    .campo-calc {
+      display: block;
+    }
+    .campo-calc.oculto {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .contenedor {
+        width: 90%;
+        padding: 20px;
+      }
+    }
+    hr {
+      margin: 40px 0;
+      border: 0;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h1>Calculadora de Gases Ideales</h1>
+
+    <div id="grupo-presion" class="campo-calc">
+      <label for="presion">Presión (atm):</label>
+      <input type="number" id="presion" placeholder="Ej: 1">
+    </div>
+
+    <div id="grupo-volumen" class="campo-calc">
+      <label for="volumen">Volumen (L):</label>
+      <input type="number" id="volumen" placeholder="Ej: 22.4">
+    </div>
+
+    <div id="grupo-mol" class="campo-calc">
+      <label for="mol">Cantidad de sustancia (mol):</label>
+      <input type="number" id="mol" placeholder="Ej: 1">
+    </div>
+
+    <div id="grupo-temperatura" class="campo-calc">
+      <label for="temperatura">Temperatura (K):</label>
+      <input type="number" id="temperatura" placeholder="Ej: 273">
+    </div>
+
+    <label for="variable">Variable a calcular:</label>
+    <select id="variable" onchange="actualizarCampos()">
+      <option value="presion">Presión (P)</option>
+      <option value="volumen">Volumen (V)</option>
+      <option value="mol">Mol (n)</option>
+      <option value="temperatura">Temperatura (T)</option>
+    </select>
+
+    <button onclick="calcular()">Calcular</button>
+    <div id="resultado"></div>
+
+    <hr>
+
+    <h2>Conversión de Unidades</h2>
+
+    <label for="grupoConversion">Tipo de magnitud:</label>
+    <select id="grupoConversion" onchange="actualizarOpcionesGrupo()">
+      <option value="masa">Masa</option>
+      <option value="volumen">Volumen</option>
+      <option value="distancia">Distancia</option>
+      <option value="densidad">Densidad</option>
+    </select>
+
+    <label for="unidadOrigen">Unidad de origen:</label>
+    <select id="unidadOrigen" onchange="actualizarDestino()"></select>
+
+    <label for="unidadDestino">Unidad de destino:</label>
+    <select id="unidadDestino"></select>
+
+    <button onclick="invertirUnidades()">Invertir conversión</button>
+
+    <label for="valorConversion">Valor:</label>
+    <input type="number" id="valorConversion" placeholder="Ingrese el valor">
+
+    <button onclick="convertirAvanzado()">Convertir</button>
+    <div id="resultado-operacion"></div>
+  </div>
+
+  <script>
+    function actualizarCampos() {
+      const campos = ["presion", "volumen", "mol", "temperatura"];
+      const variable = document.getElementById("variable").value;
+      campos.forEach(campo => {
+        const grupo = document.getElementById(`grupo-${campo}`);
+        grupo.classList.remove("oculto");
+        if (campo === variable) {
+          grupo.classList.add("oculto");
+        }
+      });
+    }
+
+    function calcular() {
+      const R = 0.0821;
+      let P = parseFloat(document.getElementById("presion").value);
+      let V = parseFloat(document.getElementById("volumen").value);
+      let n = parseFloat(document.getElementById("mol").value);
+      let T = parseFloat(document.getElementById("temperatura").value);
+      let variable = document.getElementById("variable").value;
+
+      let resultado = "";
+      try {
+        switch (variable) {
+          case "presion":
+            if (V && n && T) resultado = `P = ${(n * R * T / V).toFixed(3)} atm`;
+            else throw "Debes ingresar V, n y T.";
+            break;
+          case "volumen":
+            if (P && n && T) resultado = `V = ${(n * R * T / P).toFixed(3)} L`;
+            else throw "Debes ingresar P, n y T.";
+            break;
+          case "mol":
+            if (P && V && T) resultado = `n = ${(P * V / (R * T)).toFixed(3)} mol`;
+            else throw "Debes ingresar P, V y T.";
+            break;
+          case "temperatura":
+            if (P && V && n) resultado = `T = ${(P * V / (n * R)).toFixed(3)} K`;
+            else throw "Debes ingresar P, V y n.";
+            break;
+        }
+      } catch (error) {
+        resultado = `Error: ${error}`;
+      }
+      document.getElementById("resultado").textContent = resultado;
+    }
+
+    const unidades = {
+      masa: {
+        ton: 1e6,
+        kg: 1e3,
+        g: 1,
+        mg: 1e-3,
+        ug: 1e-6
+      },
+      volumen: {
+        gal: 3.785,
+        m3: 1000,
+        L: 1,
+        mL: 0.001,
+        uL: 0.000001
+      },
+      distancia: {
+        km: 1000,
+        m: 1,
+        cm: 0.01,
+        mm: 0.001,
+        Yarda: 0.9144,
+        Pulgada: 0.0254
+      },
+      densidad: {
+        "kg/m3": 1,
+        "g/mL": 1000,
+        "kg/L": 1000,
+        "g/L": 1
+      }
+    };
+
+    function actualizarOpcionesGrupo() {
+      const grupo = document.getElementById("grupoConversion").value;
+      const origenSelect = document.getElementById("unidadOrigen");
+      origenSelect.innerHTML = "";
+      for (let unidad in unidades[grupo]) {
+        const option = document.createElement("option");
+        option.value = unidad;
+        option.textContent = unidad;
+        origenSelect.appendChild(option);
+      }
+      actualizarDestino();
+    }
+
+    function actualizarDestino() {
+      const grupo = document.getElementById("grupoConversion").value;
+      const origen = document.getElementById("unidadOrigen").value;
+      const destinoSelect = document.getElementById("unidadDestino");
+      destinoSelect.innerHTML = "";
+      for (let unidad in unidades[grupo]) {
+        if (unidad !== origen) {
+          const option = document.createElement("option");
+          option.value = unidad;
+          option.textContent = unidad;
+          destinoSelect.appendChild(option);
+        }
+      }
+    }
+
+    function invertirUnidades() {
+      const origen = document.getElementById("unidadOrigen");
+      const destino = document.getElementById("unidadDestino");
+      const temp = origen.value;
+      origen.value = destino.value;
+      actualizarDestino();
+      destino.value = temp;
+    }
+
+    function convertirAvanzado() {
+      const valor = parseFloat(document.getElementById("valorConversion").value);
+      const grupo = document.getElementById("grupoConversion").value;
+      const unidadOrigen = document.getElementById("unidadOrigen").value;
+      const unidadDestino = document.getElementById("unidadDestino").value;
+      const resultado = document.getElementById("resultado-operacion");
+
+      if (isNaN(valor)) {
+        resultado.textContent = "Por favor, ingrese un valor válido.";
+        return;
+      }
+
+      const base = valor * unidades[grupo][unidadOrigen];
+      const convertido = base / unidades[grupo][unidadDestino];
+
+      resultado.textContent = `${valor} ${unidadOrigen} = ${convertido.toFixed(4)} ${unidadDestino}`;
+    }
+
+    actualizarOpcionesGrupo();
+    actualizarCampos();
+  </script>
+</body>
+</html>
